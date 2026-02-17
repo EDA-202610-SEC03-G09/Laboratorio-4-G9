@@ -1,4 +1,4 @@
-from DataStructures.List import single_linked as lt
+from DataStructures.List import single_linked_list as lt
 from DataStructures.Utils import error as error
 
 
