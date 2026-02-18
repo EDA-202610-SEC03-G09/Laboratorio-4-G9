@@ -66,6 +66,16 @@ def load_data(control):
 def print_books_to_read(results):
     # TODO Imprimir los libros por leer
     pass
+    if logic.st.is_empty(results):
+        print("El usuario no tiene libros por leer.")
+        return
+
+    print("\nLibros por leer (Pila - último en entrar, primero en salir):\n")
+    position = 1
+    while not logic.st.is_empty(results):
+        book = logic.st.pop(results)
+        print(f"{position}. User ID: {book['user_id']} | Book ID: {book['book_id']}")
+        position += 1
 
 
 def print_tests_results(queue_results, stack_results):
@@ -84,6 +94,13 @@ def print_tests_results(queue_results, stack_results):
     print("\nTiempos de ejecución para Pila: \n")
 
     # TODO Imprimir los resultados de las pruebas de rendimiento de la pila
+    print("Tiempo de ejecución para push:",
+          f"{stack_results['push_time']:.3f}", "[ms]")
+    print("Tiempo de ejecución para top:",
+          f"{stack_results['top_time']:.3f}", "[ms]")
+    print("Tiempo de ejecución para pop:",
+          f"{stack_results['pop_time']:.3f}", "[ms]")
+
 
 
 # Se crea el controlador asociado a la vista
