@@ -30,7 +30,7 @@ import time
 from DataStructures.List import array_list as lt
 from DataStructures.Queue import queue as q
 from DataStructures.Stack import Stack as st
-data_dir = os.path.dirname(os.path.realpath('__file__')) + '/Data/'
+data_dir = os.path.join(os.path.dirname(os.path.realpath('__file__')), 'Data', 'GoodReads') + os.sep
 
 """
 El controlador se encarga de mediar entre la vista y el modelo.
@@ -57,7 +57,7 @@ def new_logic():
     catalog['book_tags'] = lt.new_list()
     # TODO Implementar la inicialización de la lista de asociación de libros y tags
     
-    catalog['books_to_read'] = None
+    catalog['books_to_read'] = lt.new_list()
     catalog["book_sublist"] = None
     return catalog
 
@@ -133,12 +133,16 @@ def get_books_stack_by_user(catalog, user_id):
     """
     books_stack = st.new_stack()
 
-    # TODO Completar la función que retorna los libros por leer de un usuario. Se debe usar el TAD Pila para resolver el requerimiento
-    
-    for book in catalog["books"]:
-        if book[user_id] == user_id and book["status"] == "to_read":
-            st.push(books_stack, book)   
-    
+    # Recorre la lista de "books_to_read" y apila los registros del usuario
+    for i in range(lt.size(catalog['books_to_read'])):
+        entry = lt.get_element(catalog['books_to_read'], i)
+        try:
+            entry_user = int(entry['user_id'])
+        except Exception:
+            entry_user = entry['user_id']
+        if entry_user == user_id:
+            st.push(books_stack, entry)
+
     return books_stack
     
 
@@ -149,21 +153,30 @@ def get_user_position_on_queue(catalog, user_id, book_id):
     """
     queue = q.new_queue()
 
-    # TODO Completar la función que retorna la posición de un usuario en la cola para leer un libro. Se debe usar el TAD Cola para resolver el requerimiento.
-    
-    for book in catalog["books"]:
-        if book["book_id"] == book_id:
-            q.enqueue(queue, book["user_id"])
-            
-    size = q.size(queue)
+    # Encolar los user_id que esperan por el book_id solicitado
+    for i in range(lt.size(catalog['books_to_read'])):
+        entry = lt.get_element(catalog['books_to_read'], i)
+        try:
+            entry_book = int(entry['book_id'])
+        except Exception:
+            entry_book = entry['book_id']
+        if entry_book == book_id:
+            q.enqueue(queue, entry['user_id'])
+
     position = -1
-    
+    size = q.size(queue)
+    # Recorre la cola conservando su orden y busca la posición
     for i in range(size):
         elem = q.dequeue(queue)
-        if elem == user_id:
+        q.enqueue(queue, elem)
+        try:
+            elem_int = int(elem)
+        except Exception:
+            elem_int = elem
+        if elem_int == user_id:
             position = i
-            q.enqueue(queue, elem)
-            
+            break
+
     return position
     
 
@@ -312,6 +325,12 @@ def set_book_sublist(catalog, size):
     """
     Crea una sublista de libros de tamaño size
     """
+
+    total = lt.size(catalog["books"])
+
+    if size > total:
+        size = total
+
     algo = lt.sub_list(catalog["books"], 0, size)
     catalog["book_sublist"] = algo
     return catalog
@@ -349,9 +368,15 @@ def measure_queue_performance(catalog):
 
     # Medir peek
     start_time = get_time()
-    next = q.peek(queue)
-    end_time = get_time()
-    peek_time = delta_time(start_time, end_time)
+    if q.is_empty(queue):
+        # Cola vacía: no hay elemento para peek, evitar excepción
+        next = None
+        end_time = get_time()
+        peek_time = 0.0
+    else:
+        next = q.peek(queue)
+        end_time = get_time()
+        peek_time = delta_time(start_time, end_time)
 
     # Medir dequeue
     start_time = get_time()
@@ -385,10 +410,14 @@ def measure_stack_performance(catalog):
     push_time = delta_time(start_time, end_time)
     # Medir top
     start_time = get_time()
-    # TODO Implementar la medición de tiempo para la operación top
-    _=st.top(stack)
-    end_time = get_time()
-    top_time = delta_time(start_time, end_time)
+    if st.is_empty(stack):
+        _ = None
+        end_time = get_time()
+        top_time = 0.0
+    else:
+        _ = st.top(stack)
+        end_time = get_time()
+        top_time = delta_time(start_time, end_time)
 
     # Medir dequeue
     # TODO Implementar la medición de tiempo para la operación pop
